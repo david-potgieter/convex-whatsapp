@@ -1,0 +1,46 @@
+{
+  "name": "@kartweel/convex-whatsapp",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "dev:codegen": "bunx convex codegen --component-dir ./src/component --watch",
+    "dev:build": "tsup --watch",
+    "dev": "bunx convex dev",
+    "build": "tsup",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src/",
+    "test": "vitest run"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./convex.config": "./src/component/convex.config.ts",
+    "./_generated/component": "./src/component/_generated/component.ts",
+    "./test": "./src/test.ts"
+  },
+  "files": [
+    "dist",
+    "src/component/convex.config.ts",
+    "src/component/_generated/component.ts",
+    "src/test.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "convex": "^1.40.0",
+    "convex-webhook-receiver": "latest"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "latest",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "convex-test": "latest",
+    "tsup": "latest",
+    "typescript": "^5.7.2",
+    "vitest": "latest"
+  }
+}
