@@ -1,6 +1,6 @@
 import { defineApp } from 'convex/server'
 import { v } from 'convex/values'
-import whatsapp from '@kartweel/convex-whatsapp/convex.config'
+import whatsapp from 'convex-whatsapp/convex.config'
 
 const app = defineApp({
   env: {
