@@ -26,9 +26,6 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Codegen
-        run: bunx convex codegen --component-dir ./src/component
-
       - name: CI checks
         run: |
           bun run lint
