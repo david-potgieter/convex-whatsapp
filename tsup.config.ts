@@ -4,6 +4,7 @@ export default defineConfig({
   entry: {
     index: 'src/client/index.ts',
     'convex.config': 'src/component/convex.config.ts',
+    '_generated/component': 'src/component/_generated/component.ts',
   },
   format: ['esm'],
   dts: true,

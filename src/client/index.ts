@@ -14,7 +14,7 @@ import type { ComponentApi } from '../component/_generated/component.js'
 
 type RunQuery = Pick<GenericMutationCtx<GenericDataModel>, 'runQuery'>
 type RunMutation = Pick<GenericMutationCtx<GenericDataModel>, 'runMutation'>
-type RunAction = Pick<GenericActionCtx<GenericDataModel>, 'runAction'>
+type RunAction = Pick<GenericActionCtx<GenericDataModel>, 'runQuery' | 'runMutation' | 'runAction'>
 
 // ---------------------------------------------------------------------------
 // Infer return types straight from the ComponentApi so they stay in sync.
