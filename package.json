@@ -6,8 +6,8 @@
   "scripts": {
     "dev:codegen": "bunx convex codegen --component-dir ./src/component --watch",
     "dev:build": "tsup --watch",
-    "dev": "bunx convex dev",
-    "build": "tsup",
+    "dev": "bunx convex dev --typecheck-components",
+    "build": "convex codegen --component-dir ./src/component && tsup",
     "check-types": "tsc --noEmit",
     "lint": "eslint src/",
     "test": "vitest run"
@@ -17,14 +17,15 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./convex.config": "./src/component/convex.config.ts",
-    "./_generated/component": "./src/component/_generated/component.ts",
+    "./convex.config": "./dist/convex.config.js",
+    "./_generated/component": {
+      "import": "./dist/_generated/component.js",
+      "types": "./dist/_generated/component.d.ts"
+    },
     "./test": "./src/test.ts"
   },
   "files": [
     "dist",
-    "src/component/convex.config.ts",
-    "src/component/_generated/component.ts",
     "src/test.ts"
   ],
   "publishConfig": {
