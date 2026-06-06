@@ -17,7 +17,7 @@
     "noEmit": true,
     "paths": {
       "convex-webhook-receiver/_generated/component.js": [
-        "../../node_modules/convex-webhook-receiver/src/component/_generated/component.ts"
+        "./node_modules/convex-webhook-receiver/src/component/_generated/component.ts"
       ]
     }
   },
