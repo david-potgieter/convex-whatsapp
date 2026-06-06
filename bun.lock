@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "@kartweel/convex-whatsapp",
+      "name": "convex-whatsapp",
       "dependencies": {
         "convex": "^1.40.0",
         "convex-webhook-receiver": "latest",
