@@ -6,7 +6,7 @@
   "scripts": {
     "dev:codegen": "bunx convex codegen --component-dir ./src/component --watch",
     "dev:build": "tsup --watch",
-    "dev": "bunx convex dev",
+    "dev": "bunx convex dev --typecheck-components",
     "build": "convex codegen --component-dir ./src/component && tsup",
     "check-types": "tsc --noEmit",
     "lint": "eslint src/",
