@@ -31,6 +31,10 @@
     "src/component/_generated/component.ts",
     "src/test.ts"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/david-potgieter/convex-whatsapp"
+  },
   "publishConfig": {
     "access": "public"
   },
