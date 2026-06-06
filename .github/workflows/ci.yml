@@ -34,7 +34,7 @@ jobs:
   changeset-check:
     name: Changeset present
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
     steps:
       - uses: actions/checkout@v5
         with:
