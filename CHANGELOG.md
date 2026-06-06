@@ -1,5 +1,11 @@
 # convex-whatsapp
 
+## 1.0.2
+
+### Patch Changes
+
+- [#7](https://github.com/david-potgieter/convex-whatsapp/pull/7) [`bba19c9`](https://github.com/david-potgieter/convex-whatsapp/commit/bba19c9ca33e37816af18214f124c0209835c65c) Thanks [@david-potgieter](https://github.com/david-potgieter)! - NPM deploy fix
+
 ## 1.0.1
 
 ### Patch Changes
