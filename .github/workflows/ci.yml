@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  HUSKY: 0
+
+jobs:
+  ci:
+    name: Lint, Type-check & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Type-check
+        run: bun run check-types
+
+      - name: Test
+        run: bun run test
+
+      - name: Build
+        run: bun run build
+
+  changeset-check:
+    name: Changeset present
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify changeset present or escape hatch label
+        env:
+          LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          if echo "$LABELS" | grep -q '"no-changeset"'; then
+            echo "no-changeset label present — skipping"
+            exit 0
+          fi
+          bunx changeset status --since=origin/main

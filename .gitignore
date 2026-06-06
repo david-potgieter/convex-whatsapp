@@ -1,5 +1,4 @@
 dist/
-src/component/_generated/
 convex/_generated/
 example/convex/_generated/
 node_modules/
@@ -8,3 +7,4 @@ node_modules/
 .turbo/
 .agents/
 _assets
+.claude

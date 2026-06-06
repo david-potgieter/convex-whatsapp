@@ -1,0 +1,11 @@
+bunx convex codegen --component-dir ./src/component
+
+if ! git diff --quiet src/component/_generated/; then
+  echo ""
+  echo "ERROR: src/component/_generated/ has uncommitted changes after codegen."
+  echo "Stage and commit the updated files before pushing:"
+  echo "  git add src/component/_generated/"
+  echo "  git commit -m 'chore: update generated types'"
+  echo ""
+  exit 1
+fi

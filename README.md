@@ -1,8 +1,23 @@
-# @kartweel/convex-whatsapp
+<div align="center">
 
-A [Convex component](https://www.convex.dev/components) for the **WhatsApp Cloud API** (Meta, direct).
+# convex-whatsapp
 
-Send and receive WhatsApp messages, track delivery status, thread conversations, and manage message templates — all backed by Convex tables with reactive queries. Product-specific logic stays in your app; this component owns transport and state.
+![npm](https://img.shields.io/npm/v/convex-whatsapp)
+[![Convex Component](https://www.convex.dev/components/badge/convex-whatsapp)](https://www.convex.dev/components/convex-whatsapp)
+![License](https://img.shields.io/badge/license-Apache--2.0-blue)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white)
+
+<strong>WhatsApp Cloud API for Convex</strong>
+
+Send & receive messages • Delivery tracking • Conversations • Templates • Inbound callbacks
+
+[Setup](#setup) • [Usage](#usage) • [API Reference](#api-reference) • [Testing](#testing)
+
+</div>
+
+---
+
+A [Convex component](https://www.convex.dev/components) for the **WhatsApp Cloud API** (Meta, direct). Send and receive WhatsApp messages, track delivery status, thread conversations, and manage message templates — all backed by Convex tables with reactive queries. Product-specific logic stays in your app; this component owns transport and state.
 
 ## Features
 
@@ -15,18 +30,9 @@ Send and receive WhatsApp messages, track delivery status, thread conversations,
 
 ## Installation
 
-This is a workspace package. Add it to a Convex app in the monorepo:
-
-```jsonc
-// apps/your-app/package.json (or packages/convex-yourapp/package.json)
-{
-  "dependencies": {
-    "@kartweel/convex-whatsapp": "workspace:*",
-  },
-}
+```sh
+npm install convex-whatsapp
 ```
-
-Then run `bun install` from the repo root.
 
 ## Setup
 
@@ -36,7 +42,7 @@ Then run `bun install` from the repo root.
 // convex/convex.config.ts
 import { defineApp } from 'convex/server'
 import { v } from 'convex/values'
-import whatsapp from '@kartweel/convex-whatsapp/convex.config'
+import whatsapp from 'convex-whatsapp/convex.config'
 
 const app = defineApp({
   env: {
@@ -91,7 +97,7 @@ Instantiate the client with the component reference, then call methods. The same
 
 ```ts
 // convex/whatsapp.ts
-import { WhatsApp } from '@kartweel/convex-whatsapp'
+import { WhatsApp } from 'convex-whatsapp'
 import { components } from './_generated/api'
 
 export const whatsapp = new WhatsApp(components.whatsapp)
@@ -211,7 +217,7 @@ export const refreshTemplates = action({
 })
 ```
 
-## Client API
+## API Reference
 
 | Method                                | Ctx      | Description                                          |
 | ------------------------------------- | -------- | ---------------------------------------------------- |
@@ -228,7 +234,7 @@ Register the component (and its `webhookReceiver` child) in one call:
 
 ```ts
 import { convexTest } from 'convex-test'
-import whatsapp from '@kartweel/convex-whatsapp/test'
+import whatsapp from 'convex-whatsapp/test'
 import schema from './schema'
 
 const modules = import.meta.glob('./**/*.ts')
@@ -240,19 +246,17 @@ function makeT() {
 }
 ```
 
-## Local development (this package)
-
-```sh
-# from packages/convex-whatsapp
-bun run dev:codegen   # regenerate component _generated/ on change
-bun run dev:build     # rebuild the bundled client/convex.config on change
-bunx convex dev       # deploy the dev harness app (convex/) and watch
-bun run test          # vitest
-```
-
-The `convex/` directory is a dev harness — it mounts the component and exposes example functions (`convex/examples.ts`) you can run from the dashboard.
-
 ## Notes
 
 - One component instance = one WhatsApp Business Account / phone number. Multi-tenancy (multiple WABAs in one deployment) is intentionally out of scope — provision a separate Convex deployment per client.
 - Inbound webhook ingestion is handled by [`convex-webhook-receiver`](https://github.com/david-potgieter/convex-webhook-receiver), included as a child component.
+
+## License
+
+Apache-2.0
+
+---
+
+<div align="center">
+Built with ♥ for Convex | <a href="https://www.convex.dev/">Convex</a> • <a href="https://docs.convex.dev/components">Components</a> • <a href="https://github.com/david-potgieter/convex-whatsapp">GitHub</a>
+</div>
