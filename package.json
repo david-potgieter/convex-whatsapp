@@ -12,7 +12,8 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint src/",
     "test": "vitest run",
-    "changesets": "bunx changeset",
+    "changesets": "changeset",
+    "release": "changeset publish",
     "prepare": "husky"
   },
   "exports": {
