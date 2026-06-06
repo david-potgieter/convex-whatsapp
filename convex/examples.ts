@@ -1,5 +1,5 @@
 /**
- * Example functions demonstrating convex-whatsapp usage.
+ * Example functions demonstrating @kartweel/convex-whatsapp usage.
  * Run any of these from the Convex dashboard or CLI.
  */
 import type { FunctionHandle } from 'convex/server'
@@ -21,7 +21,7 @@ export const sendText = action({
     return whatsapp.send(ctx, {
       to,
       type: 'text',
-      text: { body: 'Hello from convex-whatsapp!' },
+      text: { body: 'Hello from @kartweel/convex-whatsapp!' },
     })
   },
 })

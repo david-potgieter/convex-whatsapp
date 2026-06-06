@@ -13,7 +13,7 @@ const modules = import.meta.glob('./component/**/*.ts')
  * @example
  * ```ts
  * import { convexTest } from "convex-test";
- * import whatsapp from "convex-whatsapp/test";
+ * import whatsapp from "@kartweel/convex-whatsapp/test";
  * import schema from "./schema";
  * const modules = import.meta.glob("./**\/*.ts");
  *
