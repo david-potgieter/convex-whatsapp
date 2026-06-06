@@ -1,4 +1,4 @@
-# convex-whatsapp
+# @kartweel/convex-whatsapp
 
 A [Convex component](https://www.convex.dev/components) for the **WhatsApp Cloud API** (Meta, direct).
 
@@ -15,11 +15,18 @@ Send and receive WhatsApp messages, track delivery status, thread conversations,
 
 ## Installation
 
-```sh
-npm install convex-whatsapp
-# or
-bun add convex-whatsapp
+This is a workspace package. Add it to a Convex app in the monorepo:
+
+```jsonc
+// apps/your-app/package.json (or packages/convex-yourapp/package.json)
+{
+  "dependencies": {
+    "@kartweel/convex-whatsapp": "workspace:*",
+  },
+}
 ```
+
+Then run `bun install` from the repo root.
 
 ## Setup
 
@@ -29,7 +36,7 @@ bun add convex-whatsapp
 // convex/convex.config.ts
 import { defineApp } from 'convex/server'
 import { v } from 'convex/values'
-import whatsapp from 'convex-whatsapp/convex.config'
+import whatsapp from '@kartweel/convex-whatsapp/convex.config'
 
 const app = defineApp({
   env: {
@@ -84,7 +91,7 @@ Instantiate the client with the component reference, then call methods. The same
 
 ```ts
 // convex/whatsapp.ts
-import { WhatsApp } from 'convex-whatsapp'
+import { WhatsApp } from '@kartweel/convex-whatsapp'
 import { components } from './_generated/api'
 
 export const whatsapp = new WhatsApp(components.whatsapp)
@@ -221,7 +228,7 @@ Register the component (and its `webhookReceiver` child) in one call:
 
 ```ts
 import { convexTest } from 'convex-test'
-import whatsapp from 'convex-whatsapp/test'
+import whatsapp from '@kartweel/convex-whatsapp/test'
 import schema from './schema'
 
 const modules = import.meta.glob('./**/*.ts')
@@ -236,6 +243,7 @@ function makeT() {
 ## Local development (this package)
 
 ```sh
+# from packages/convex-whatsapp
 bun run dev:codegen   # regenerate component _generated/ on change
 bun run dev:build     # rebuild the bundled client/convex.config on change
 bunx convex dev       # deploy the dev harness app (convex/) and watch
@@ -248,7 +256,3 @@ The `convex/` directory is a dev harness — it mounts the component and exposes
 
 - One component instance = one WhatsApp Business Account / phone number. Multi-tenancy (multiple WABAs in one deployment) is intentionally out of scope — provision a separate Convex deployment per client.
 - Inbound webhook ingestion is handled by [`convex-webhook-receiver`](https://github.com/david-potgieter/convex-webhook-receiver), included as a child component.
-
-## Author
-
-[@david-potgieter](https://github.com/david-potgieter)

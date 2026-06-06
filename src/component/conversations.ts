@@ -25,14 +25,12 @@ export const getConversation = query({
 })
 
 export const getMessages = query({
-  args: { conversationId: v.string() },
+  args: { conversationId: v.id('conversations') },
   returns: v.array(messageDoc),
   handler: async (ctx, args) => {
     return ctx.db
       .query('messages')
-      .withIndex('by_conversation', (q) =>
-        q.eq('conversationId', args.conversationId as Id<'conversations'>),
-      )
+      .withIndex('by_conversation', (q) => q.eq('conversationId', args.conversationId))
       .order('asc')
       .collect()
   },

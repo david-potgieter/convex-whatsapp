@@ -1,6 +1,6 @@
 /**
  * Verifies that the exported `register` test helper works correctly for
- * consumers who install convex-whatsapp as a dependency.
+ * consumers who install @kartweel/convex-whatsapp as a dependency.
  */
 import { convexTest } from 'convex-test'
 import { describe, expect, test, vi, afterEach } from 'vitest'
