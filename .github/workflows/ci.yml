@@ -55,4 +55,4 @@ jobs:
             echo "no-changeset label present — skipping"
             exit 0
           fi
-          bunx changeset status --since=main
+          bunx changeset status --since=origin/main
