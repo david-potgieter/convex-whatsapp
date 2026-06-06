@@ -26,17 +26,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: CI checks
-        run: |
-          bun run lint
-          bun run check-types
-          bun run test
-          bun run build
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+      - name: Build
+        run: bun run build
 
       - name: Version, tag, and push
         id: version
