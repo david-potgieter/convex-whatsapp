@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+env:
+  HUSKY: 0
+
+jobs:
+  release:
+    name: Version & Publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.CHANGESETS_PAT }}
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: CI checks
+        run: |
+          bun run lint
+          bun run check-types
+          bun run test
+          bun run build
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Version, tag, and push
+        id: version
+        env:
+          GITHUB_TOKEN: ${{ secrets.CHANGESETS_PAT }}
+        run: |
+          if find .changeset -name "*.md" ! -name "README.md" | grep -q .; then
+            echo "has_changesets=true" >> $GITHUB_OUTPUT
+            bunx changeset version
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "chore: version packages [skip ci]"
+            bunx changeset tag
+            git push --follow-tags
+          else
+            echo "has_changesets=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish to NPM
+        if: steps.version.outputs.has_changesets == 'true'
+        run: npm publish --provenance --access public
