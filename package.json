@@ -12,7 +12,8 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint src/",
     "test": "vitest run",
-    "changesets": "bunx changeset"
+    "changesets": "bunx changeset",
+    "prepare": "husky"
   },
   "exports": {
     ".": {
@@ -43,6 +44,7 @@
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
     "convex-test": "latest",
+    "husky": "^9.1.7",
     "tsup": "latest",
     "typescript": "^5.7.2",
     "vitest": "latest"
