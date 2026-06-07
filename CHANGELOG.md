@@ -1,5 +1,11 @@
 # convex-whatsapp
 
+## 1.1.1
+
+### Patch Changes
+
+- [#15](https://github.com/david-potgieter/convex-whatsapp/pull/15) [`5863c5f`](https://github.com/david-potgieter/convex-whatsapp/commit/5863c5fbe54ba5feccc93f58cd5003a2f570a39e) Thanks [@david-potgieter](https://github.com/david-potgieter)! - Readme fix
+
 ## 1.1.0
 
 ### Minor Changes
