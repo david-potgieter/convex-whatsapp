@@ -51,43 +51,41 @@ describe('messages.send text', () => {
     expect(msg?.timestamp).toBeTypeOf('number')
   })
 
-  test('transitions to failed and stores errorDetails on non-2xx response', async () => {
+  test('throws and marks failed with parsed error code on non-2xx response', async () => {
     const t = makeT()
     vi.stubGlobal(
       'fetch',
       async () =>
-        new Response(JSON.stringify({ error: { message: 'Invalid token' } }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' },
-        }),
+        new Response(
+          JSON.stringify({
+            error: { code: 131030, message: 'Recipient not in allowed list', type: 'OAuthException' },
+          }),
+          { status: 400 },
+        ),
     )
 
-    const messageId = await t.action(api.messages.send, {
-      to: '+27821234567',
-      type: 'text',
-      text: { body: 'Hello!' },
-    })
+    await expect(
+      t.action(api.messages.send, { to: '+27821234567', type: 'text', text: { body: 'Hello!' } }),
+    ).rejects.toThrow()
 
-    const msg = await t.run((ctx) => ctx.db.get(messageId))
-    expect(msg?.status).toBe('failed')
-    expect(msg?.errorDetails).toBeDefined()
+    const messages = await t.run((ctx) => ctx.db.query('messages').collect())
+    expect(messages[0].status).toBe('failed')
+    expect(messages[0].errorDetails).toContain('131030')
   })
 
-  test('transitions to failed on fetch throw', async () => {
+  test('throws and marks failed on network error', async () => {
     const t = makeT()
     vi.stubGlobal('fetch', async () => {
       throw new Error('Network error')
     })
 
-    const messageId = await t.action(api.messages.send, {
-      to: '+27821234567',
-      type: 'text',
-      text: { body: 'Hello!' },
-    })
+    await expect(
+      t.action(api.messages.send, { to: '+27821234567', type: 'text', text: { body: 'Hello!' } }),
+    ).rejects.toThrow()
 
-    const msg = await t.run((ctx) => ctx.db.get(messageId))
-    expect(msg?.status).toBe('failed')
-    expect(msg?.errorDetails).toContain('Network error')
+    const messages = await t.run((ctx) => ctx.db.query('messages').collect())
+    expect(messages[0].status).toBe('failed')
+    expect(messages[0].errorDetails).toContain('Network error')
   })
 
   test('calls Meta API with correct payload', async () => {
@@ -298,5 +296,92 @@ describe('messages.send interactive (#82)', () => {
         },
       }),
     ).rejects.toThrow()
+  })
+})
+
+describe('phone normalization', () => {
+  test('adds + prefix when missing', async () => {
+    const t = makeT()
+    let capturedBody: unknown
+    vi.stubGlobal('fetch', async (_url: string, init: RequestInit) => {
+      capturedBody = JSON.parse(init.body as string)
+      return metaSuccess()
+    })
+
+    await t.action(api.messages.send, {
+      to: '27821234567',
+      type: 'text',
+      text: { body: 'Hi' },
+    })
+
+    expect((capturedBody as { to: string }).to).toBe('+27821234567')
+    const messages = await t.run((ctx) => ctx.db.query('messages').collect())
+    expect(messages[0].to).toBe('+27821234567')
+  })
+
+  test('leaves already-normalized number unchanged', async () => {
+    const t = makeT()
+    let capturedBody: unknown
+    vi.stubGlobal('fetch', async (_url: string, init: RequestInit) => {
+      capturedBody = JSON.parse(init.body as string)
+      return metaSuccess()
+    })
+
+    await t.action(api.messages.send, {
+      to: '+27821234567',
+      type: 'text',
+      text: { body: 'Hi' },
+    })
+
+    expect((capturedBody as { to: string }).to).toBe('+27821234567')
+  })
+
+  test('strips spaces and dashes', async () => {
+    const t = makeT()
+    let capturedBody: unknown
+    vi.stubGlobal('fetch', async (_url: string, init: RequestInit) => {
+      capturedBody = JSON.parse(init.body as string)
+      return metaSuccess()
+    })
+
+    await t.action(api.messages.send, {
+      to: '+27 82 123-4567',
+      type: 'text',
+      text: { body: 'Hi' },
+    })
+
+    expect((capturedBody as { to: string }).to).toBe('+27821234567')
+  })
+})
+
+describe('error handling', () => {
+  test('ConvexError carries parsed Meta error code', async () => {
+    const t = makeT()
+    vi.stubGlobal(
+      'fetch',
+      async () =>
+        new Response(
+          JSON.stringify({
+            error: {
+              code: 131030,
+              message: 'Recipient phone number not in allowed list',
+              type: 'OAuthException',
+              fbtrace_id: 'abc123',
+            },
+          }),
+          { status: 400 },
+        ),
+    )
+
+    let caught: unknown
+    try {
+      await t.action(api.messages.send, { to: '+27821234567', type: 'text', text: { body: 'Hi' } })
+    } catch (e) {
+      caught = e
+    }
+
+    expect(caught).toBeDefined()
+    // ConvexError wraps the structured data
+    expect((caught as { data?: { code: number } }).data?.code).toBe(131030)
   })
 })

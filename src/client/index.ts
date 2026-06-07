@@ -5,7 +5,23 @@ import type {
   GenericDataModel,
   GenericMutationCtx,
 } from 'convex/server'
+import { ConvexError } from 'convex/values'
 import type { ComponentApi } from '../component/_generated/component.js'
+
+// ---------------------------------------------------------------------------
+// Typed errors
+// ---------------------------------------------------------------------------
+
+export type WhatsAppErrorData = {
+  code: number
+  message: string
+  type: string
+  fbtraceId?: string
+}
+
+export function isWhatsAppError(e: unknown): e is ConvexError<WhatsAppErrorData> {
+  return e instanceof ConvexError && typeof (e.data as Record<string, unknown>)?.code === 'number'
+}
 
 // ---------------------------------------------------------------------------
 // Ctx types — Pick only what each method needs so callers can use mutation
