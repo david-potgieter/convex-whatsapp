@@ -120,6 +120,27 @@ export class WhatsApp {
     })
   }
 
+  async listConversations(ctx: RunQuery, limit?: number): Promise<ConversationDoc[]> {
+    return ctx.runQuery(this.component.conversations.listConversations, { limit })
+  }
+
+  async markConversationRead(ctx: RunMutation, conversationId: string): Promise<null> {
+    return ctx.runMutation(this.component.conversations.markConversationRead, {
+      conversationId,
+    })
+  }
+
+  async updateConversationMetadata(
+    ctx: RunMutation,
+    conversationId: string,
+    metadata: unknown,
+  ): Promise<null> {
+    return ctx.runMutation(this.component.conversations.updateConversationMetadata, {
+      conversationId,
+      metadata,
+    })
+  }
+
   // --- Inbound callback registration (mutation) ---
 
   async registerInboundHandler(

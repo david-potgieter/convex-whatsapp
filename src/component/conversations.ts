@@ -1,5 +1,5 @@
 import { v } from 'convex/values'
-import { query } from './_generated/server.js'
+import { mutation, query } from './_generated/server.js'
 import schema from './schema.js'
 import type { Id } from './_generated/dataModel.js'
 
@@ -41,5 +41,35 @@ export const getMessage = query({
   returns: v.nullable(messageDoc),
   handler: async (ctx, args) => {
     return ctx.db.get(args.messageId as Id<'messages'>)
+  },
+})
+
+export const listConversations = query({
+  args: { limit: v.optional(v.number()) },
+  returns: v.array(conversationDoc),
+  handler: async (ctx, args) => {
+    return ctx.db
+      .query('conversations')
+      .withIndex('by_lastMessageAt')
+      .order('desc')
+      .take(args.limit ?? 50)
+  },
+})
+
+export const markConversationRead = mutation({
+  args: { conversationId: v.id('conversations') },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.conversationId, { unreadCount: 0 })
+    return null
+  },
+})
+
+export const updateConversationMetadata = mutation({
+  args: { conversationId: v.id('conversations'), metadata: v.any() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.conversationId, { metadata: args.metadata })
+    return null
   },
 })

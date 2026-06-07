@@ -219,14 +219,17 @@ export const refreshTemplates = action({
 
 ## API Reference
 
-| Method                                | Ctx      | Description                                          |
-| ------------------------------------- | -------- | ---------------------------------------------------- |
-| `send(ctx, args)`                     | action   | Send a message; returns the stored message id        |
-| `syncTemplates(ctx)`                  | action   | Pull approved templates from the Graph API           |
-| `getTemplates(ctx, status?)`          | query    | Read cached templates, optionally filtered by status |
-| `getConversation(ctx, phoneNumber)`   | query    | Fetch a conversation by phone number                 |
-| `getMessages(ctx, conversationId)`    | query    | List a conversation's messages, oldest first         |
-| `registerInboundHandler(ctx, handle)` | mutation | Register the function to run on each inbound message |
+| Method                                              | Ctx      | Description                                          |
+| --------------------------------------------------- | -------- | ---------------------------------------------------- |
+| `send(ctx, args)`                                   | action   | Send a message; returns the stored message id        |
+| `syncTemplates(ctx)`                                | action   | Pull approved templates from the Graph API           |
+| `getTemplates(ctx, status?)`                        | query    | Read cached templates, optionally filtered by status |
+| `listConversations(ctx, limit?)`                    | query    | List conversations sorted by most recent, default 50 |
+| `getConversation(ctx, phoneNumber)`                 | query    | Fetch a conversation by phone number                 |
+| `getMessages(ctx, conversationId)`                  | query    | List a conversation's messages, oldest first         |
+| `markConversationRead(ctx, conversationId)`         | mutation | Reset `unreadCount` to 0                             |
+| `updateConversationMetadata(ctx, conversationId, metadata)` | mutation | Store arbitrary app data on a conversation   |
+| `registerInboundHandler(ctx, handle)`               | mutation | Register the function to run on each inbound message |
 
 ## Testing
 
