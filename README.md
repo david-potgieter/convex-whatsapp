@@ -1,3 +1,5 @@
+<div align="center">
+
 # convex-whatsapp
 
 ![npm](https://img.shields.io/npm/v/convex-whatsapp)
@@ -5,9 +7,13 @@
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white)
 
-**WhatsApp Cloud API for Convex** — Send & receive messages • Delivery tracking • Conversations • Templates • Inbound callbacks
+<strong>WhatsApp Cloud API for Convex</strong>
+
+Send & receive messages • Delivery tracking • Conversations • Templates • Inbound callbacks
 
 [Setup](#setup) • [Usage](#usage) • [API Reference](#api-reference) • [Testing](#testing)
+
+</div>
 
 ---
 
