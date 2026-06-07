@@ -60,5 +60,7 @@ export default defineSchema({
     lastMessagePreview: v.string(),
     unreadCount: v.number(),
     metadata: v.optional(v.any()),
-  }).index('by_phoneNumber', ['phoneNumber']),
+  })
+    .index('by_phoneNumber', ['phoneNumber'])
+    .index('by_lastMessageAt', ['lastMessageAt']),
 })

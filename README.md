@@ -184,6 +184,75 @@ export const setup = mutation({
 })
 ```
 
+### Error handling
+
+`send` throws a `ConvexError` on API failure so you can branch on Meta's numeric error codes. Use `isWhatsAppError` to narrow the type:
+
+```ts
+import { isWhatsAppError } from 'convex-whatsapp'
+import { action } from './_generated/server'
+import { v } from 'convex/values'
+import { whatsapp } from './whatsapp'
+
+export const safeSend = action({
+  args: { to: v.string(), body: v.string() },
+  handler: async (ctx, { to, body }) => {
+    try {
+      return await whatsapp.send(ctx, { to, type: 'text', text: { body } })
+    } catch (e) {
+      if (isWhatsAppError(e)) {
+        // e.data is typed: { code, message, type, fbtraceId? }
+        if (e.data.code === 131030) return { error: 'recipient_not_allowed' }
+        if (e.data.code === 130429) return { error: 'rate_limited' }
+      }
+      throw e
+    }
+  },
+})
+```
+
+The message is always stored in the database with `status: 'failed'` before the error is thrown, so you can query it later regardless.
+
+Phone numbers are normalized to E.164 automatically — a missing `+` prefix is added and spaces/dashes are stripped. The country code must already be present (e.g. `27821234567` → `+27821234567`).
+
+### Retries
+
+Retry logic is intentionally not built into this component. There are two reasons:
+
+1. **A blocking retry inside an action is the wrong Convex primitive.** Sleeping and looping inside `send` would hold the function slot and consume the 2-minute action timeout. Convex's model for durable, multi-step work is scheduling — not blocking.
+
+2. **The component cannot know your retry policy.** Some failures are permanent (`131030` — recipient not in allowed list) and should never be retried. Others are transient (`130429` — rate limited) and should back off. Only your app knows which is which, and only your app has the business context to decide whether to retry, notify a user, or escalate.
+
+The right tool for this is [`@convex-dev/workflow`](https://www.convex.dev/components/workflow), which gives you durable multi-step workflows with built-in retry and sleep support. A rate-limit-aware send workflow looks like this:
+
+```ts
+import { WorkflowManager } from '@convex-dev/workflow'
+import { components, internal } from './_generated/api'
+import { isWhatsAppError } from 'convex-whatsapp'
+import { whatsapp } from './whatsapp'
+
+const workflow = new WorkflowManager(components.workflow)
+
+export const sendWithRetry = workflow.define({
+  args: { to: v.string(), body: v.string() },
+  handler: async (step, { to, body }): Promise<string> => {
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        return await step.runAction(internal.messages.doSend, { to, body })
+      } catch (e) {
+        if (isWhatsAppError(e) && e.data.code === 130429 && attempt < 3) {
+          // Rate limited — wait with exponential backoff before retrying
+          await step.sleep(`backoff-${attempt}`, 2 ** attempt * 5_000)
+          continue
+        }
+        throw e
+      }
+    }
+    throw new Error('unreachable')
+  },
+})
+```
+
 ### Conversations
 
 ```ts
@@ -219,14 +288,17 @@ export const refreshTemplates = action({
 
 ## API Reference
 
-| Method                                | Ctx      | Description                                          |
-| ------------------------------------- | -------- | ---------------------------------------------------- |
-| `send(ctx, args)`                     | action   | Send a message; returns the stored message id        |
-| `syncTemplates(ctx)`                  | action   | Pull approved templates from the Graph API           |
-| `getTemplates(ctx, status?)`          | query    | Read cached templates, optionally filtered by status |
-| `getConversation(ctx, phoneNumber)`   | query    | Fetch a conversation by phone number                 |
-| `getMessages(ctx, conversationId)`    | query    | List a conversation's messages, oldest first         |
-| `registerInboundHandler(ctx, handle)` | mutation | Register the function to run on each inbound message |
+| Method                                              | Ctx      | Description                                          |
+| --------------------------------------------------- | -------- | ---------------------------------------------------- |
+| `send(ctx, args)`                                   | action   | Send a message; returns the stored message id        |
+| `syncTemplates(ctx)`                                | action   | Pull approved templates from the Graph API           |
+| `getTemplates(ctx, status?)`                        | query    | Read cached templates, optionally filtered by status |
+| `listConversations(ctx, limit?)`                    | query    | List conversations sorted by most recent, default 50 |
+| `getConversation(ctx, phoneNumber)`                 | query    | Fetch a conversation by phone number                 |
+| `getMessages(ctx, conversationId)`                  | query    | List a conversation's messages, oldest first         |
+| `markConversationRead(ctx, conversationId)`         | mutation | Reset `unreadCount` to 0                             |
+| `updateConversationMetadata(ctx, conversationId, metadata)` | mutation | Store arbitrary app data on a conversation   |
+| `registerInboundHandler(ctx, handle)`               | mutation | Register the function to run on each inbound message |
 
 ## Testing
 

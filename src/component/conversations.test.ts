@@ -133,6 +133,99 @@ describe('conversation deduplication', () => {
   })
 })
 
+describe('listConversations', () => {
+  test('returns conversations sorted by lastMessageAt descending', async () => {
+    const t = makeT()
+
+    await t.action(internal.webhook.processEvent, {
+      provider: 'whatsapp',
+      rawBody: inboundPayload('+27821111111', 'First phone', 'wamid.a'),
+      headers: {},
+    })
+    await t.action(internal.webhook.processEvent, {
+      provider: 'whatsapp',
+      rawBody: inboundPayload('+27822222222', 'Second phone', 'wamid.b'),
+      headers: {},
+    })
+
+    const convs = await t.query(api.conversations.listConversations, {})
+    expect(convs).toHaveLength(2)
+    expect(convs[0].phoneNumber).toBe('+27822222222')
+    expect(convs[1].phoneNumber).toBe('+27821111111')
+  })
+
+  test('respects the limit argument', async () => {
+    const t = makeT()
+
+    await t.action(internal.webhook.processEvent, {
+      provider: 'whatsapp',
+      rawBody: inboundPayload('+27821111111', 'A', 'wamid.a'),
+      headers: {},
+    })
+    await t.action(internal.webhook.processEvent, {
+      provider: 'whatsapp',
+      rawBody: inboundPayload('+27822222222', 'B', 'wamid.b'),
+      headers: {},
+    })
+    await t.action(internal.webhook.processEvent, {
+      provider: 'whatsapp',
+      rawBody: inboundPayload('+27823333333', 'C', 'wamid.c'),
+      headers: {},
+    })
+
+    const convs = await t.query(api.conversations.listConversations, { limit: 2 })
+    expect(convs).toHaveLength(2)
+  })
+})
+
+describe('markConversationRead', () => {
+  test('resets unreadCount to 0', async () => {
+    const t = makeT()
+
+    await t.action(internal.webhook.processEvent, {
+      provider: 'whatsapp',
+      rawBody: inboundPayload('+27829999999', 'Hey', 'wamid.1'),
+      headers: {},
+    })
+    await t.action(internal.webhook.processEvent, {
+      provider: 'whatsapp',
+      rawBody: inboundPayload('+27829999999', 'Again', 'wamid.2'),
+      headers: {},
+    })
+
+    const before = await t.query(api.conversations.getConversation, { phoneNumber: '+27829999999' })
+    expect(before?.unreadCount).toBe(2)
+
+    await t.mutation(api.conversations.markConversationRead, { conversationId: before!._id })
+
+    const after = await t.query(api.conversations.getConversation, { phoneNumber: '+27829999999' })
+    expect(after?.unreadCount).toBe(0)
+  })
+})
+
+describe('updateConversationMetadata', () => {
+  test('stores arbitrary metadata on the conversation', async () => {
+    const t = makeT()
+
+    await t.action(internal.webhook.processEvent, {
+      provider: 'whatsapp',
+      rawBody: inboundPayload('+27821234567', 'Hi', 'wamid.1'),
+      headers: {},
+    })
+
+    const conv = await t.query(api.conversations.getConversation, { phoneNumber: '+27821234567' })
+    await t.mutation(api.conversations.updateConversationMetadata, {
+      conversationId: conv!._id,
+      metadata: { customerId: 'cust_abc', tier: 'premium' },
+    })
+
+    const updated = await t.query(api.conversations.getConversation, {
+      phoneNumber: '+27821234567',
+    })
+    expect(updated?.metadata).toEqual({ customerId: 'cust_abc', tier: 'premium' })
+  })
+})
+
 describe('getMessages', () => {
   test('returns messages in chronological order', async () => {
     const t = makeT()

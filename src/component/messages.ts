@@ -1,5 +1,5 @@
 import type { Id } from './_generated/dataModel.js'
-import { v } from 'convex/values'
+import { ConvexError, v } from 'convex/values'
 import { internal } from './_generated/api.js'
 import { action, env } from './_generated/server.js'
 
@@ -86,6 +86,34 @@ const interactivePayload = v.union(
 )
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function normalizePhone(phone: string): string {
+  const stripped = phone.replace(/[\s\-().]/g, '')
+  return stripped.startsWith('+') ? stripped : `+${stripped}`
+}
+
+type MetaErrorShape = {
+  error?: { code?: number; message?: string; type?: string; fbtrace_id?: string }
+}
+
+function parseMetaError(body: string): { code: number; message: string; type: string; fbtraceId?: string } {
+  try {
+    const parsed = JSON.parse(body) as MetaErrorShape
+    const e = parsed.error ?? {}
+    return {
+      code: e.code ?? 0,
+      message: e.message ?? body,
+      type: e.type ?? 'Unknown',
+      ...(e.fbtrace_id ? { fbtraceId: e.fbtrace_id } : {}),
+    }
+  } catch {
+    return { code: 0, message: body, type: 'Unknown' }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // send action
 // ---------------------------------------------------------------------------
 
@@ -113,6 +141,8 @@ export const send = action({
   },
   returns: v.id('messages'),
   handler: async (ctx, args): Promise<Id<'messages'>> => {
+    const to = normalizePhone(args.to)
+
     const payload =
       args.type === 'text'
         ? args.text
@@ -155,11 +185,12 @@ export const send = action({
 
     const messageId: Id<'messages'> = await ctx.runMutation(
       internal.messagesInternal.insertQueued,
-      { to: args.to, type: args.type, payload },
+      { to, type: args.type, payload },
     )
 
+    let response: Response
     try {
-      const response = await fetch(
+      response = await fetch(
         `https://graph.facebook.com/${META_API_VERSION}/${env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
         {
           method: 'POST',
@@ -170,36 +201,38 @@ export const send = action({
           body: JSON.stringify({
             messaging_product: 'whatsapp',
             recipient_type: 'individual',
-            to: args.to,
+            to,
             type: args.type,
             ...metaTypeField,
           }),
         },
       )
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        await ctx.runMutation(internal.messagesInternal.updateStatus, {
-          messageId,
-          status: 'failed',
-          errorDetails: errorText,
-        })
-        return messageId
-      }
-
-      const data = (await response.json()) as { messages: Array<{ id: string }> }
-      await ctx.runMutation(internal.messagesInternal.updateStatus, {
-        messageId,
-        status: 'sent',
-        waMessageId: data.messages?.[0]?.id,
-      })
-    } catch (error) {
+    } catch (networkError) {
+      const errorDetails = String(networkError)
       await ctx.runMutation(internal.messagesInternal.updateStatus, {
         messageId,
         status: 'failed',
-        errorDetails: String(error),
+        errorDetails,
       })
+      throw new ConvexError({ code: 0, message: errorDetails, type: 'NetworkError' })
     }
+
+    if (!response.ok) {
+      const errorDetails = await response.text()
+      await ctx.runMutation(internal.messagesInternal.updateStatus, {
+        messageId,
+        status: 'failed',
+        errorDetails,
+      })
+      throw new ConvexError(parseMetaError(errorDetails))
+    }
+
+    const data = (await response.json()) as { messages: Array<{ id: string }> }
+    await ctx.runMutation(internal.messagesInternal.updateStatus, {
+      messageId,
+      status: 'sent',
+      waMessageId: data.messages?.[0]?.id,
+    })
 
     return messageId
   },

@@ -5,7 +5,23 @@ import type {
   GenericDataModel,
   GenericMutationCtx,
 } from 'convex/server'
+import { ConvexError } from 'convex/values'
 import type { ComponentApi } from '../component/_generated/component.js'
+
+// ---------------------------------------------------------------------------
+// Typed errors
+// ---------------------------------------------------------------------------
+
+export type WhatsAppErrorData = {
+  code: number
+  message: string
+  type: string
+  fbtraceId?: string
+}
+
+export function isWhatsAppError(e: unknown): e is ConvexError<WhatsAppErrorData> {
+  return e instanceof ConvexError && typeof (e.data as Record<string, unknown>)?.code === 'number'
+}
 
 // ---------------------------------------------------------------------------
 // Ctx types — Pick only what each method needs so callers can use mutation
@@ -117,6 +133,27 @@ export class WhatsApp {
   async getMessages(ctx: RunQuery, conversationId: string): Promise<MessageDoc[]> {
     return ctx.runQuery(this.component.conversations.getMessages, {
       conversationId,
+    })
+  }
+
+  async listConversations(ctx: RunQuery, limit?: number): Promise<ConversationDoc[]> {
+    return ctx.runQuery(this.component.conversations.listConversations, { limit })
+  }
+
+  async markConversationRead(ctx: RunMutation, conversationId: string): Promise<null> {
+    return ctx.runMutation(this.component.conversations.markConversationRead, {
+      conversationId,
+    })
+  }
+
+  async updateConversationMetadata(
+    ctx: RunMutation,
+    conversationId: string,
+    metadata: unknown,
+  ): Promise<null> {
+    return ctx.runMutation(this.component.conversations.updateConversationMetadata, {
+      conversationId,
+      metadata,
     })
   }
 

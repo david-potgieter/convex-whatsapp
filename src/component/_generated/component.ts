@@ -102,6 +102,35 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         }>,
         Name
       >;
+      listConversations: FunctionReference<
+        "query",
+        "internal",
+        { limit?: number },
+        Array<{
+          _creationTime: number;
+          _id: string;
+          lastMessageAt: number;
+          lastMessagePreview: string;
+          metadata?: any;
+          phoneNumber: string;
+          unreadCount: number;
+        }>,
+        Name
+      >;
+      markConversationRead: FunctionReference<
+        "mutation",
+        "internal",
+        { conversationId: string },
+        null,
+        Name
+      >;
+      updateConversationMetadata: FunctionReference<
+        "mutation",
+        "internal",
+        { conversationId: string; metadata: any },
+        null,
+        Name
+      >;
     };
     messages: {
       send: FunctionReference<
