@@ -15,6 +15,7 @@ export default defineConfig({
     'config': 'src/component/config.ts',
   },
   format: ['esm'],
+  splitting: false,
   dts: { entry: { index: 'src/client/index.ts', 'convex.config': 'src/component/convex.config.ts' } },
   sourcemap: true,
   clean: true,
