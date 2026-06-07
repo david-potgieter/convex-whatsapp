@@ -1,6 +1,6 @@
 {
   "name": "convex-whatsapp",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Convex component for the WhatsApp Cloud API — send & receive messages, track delivery, and manage conversations reactively.",
   "private": false,
   "license": "Apache-2.0",
@@ -23,13 +23,15 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./convex.config": "./src/component/convex.config.ts",
+    "./convex.config": {
+      "types": "./src/component/convex.config.ts",
+      "import": "./dist/convex.config.js"
+    },
     "./_generated/component": "./src/component/_generated/component.ts",
     "./test": "./src/test.ts"
   },
   "files": [
     "dist",
-    "convex.config.ts",
     "src/component/_generated/component.ts",
     "src/test.ts"
   ],
